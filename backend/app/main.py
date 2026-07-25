@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from app.routers import health
 from app.database import Base, engine
 from app.models.user import User
-from app.routers import health, users
+from app.routers import health, users, tickets
+from app.models.ticket import Ticket
 
 
 app = FastAPI(
@@ -14,8 +15,8 @@ app = FastAPI(
 Base.metadata.create_all(bind=engine)
 
 app.include_router(health.router)
-app.include_router(health.router)
 app.include_router(users.router)
+app.include_router(tickets.router)
 
 
 @app.get("/")
