@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from app.routers import health
+from app.database import Base, engine
+from app.models.user import User
+from app.routers import health, users
+
 
 app = FastAPI(
     title="HospitalAI",
@@ -7,7 +11,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+Base.metadata.create_all(bind=engine)
+
 app.include_router(health.router)
+app.include_router(health.router)
+app.include_router(users.router)
 
 
 @app.get("/")
