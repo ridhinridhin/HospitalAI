@@ -20,3 +20,10 @@ class TicketResponse(TicketCreate):
 
     class Config:
         from_attributes = True
+
+
+class TicketUpdate(BaseModel):
+    status: str | None = None
+    priority: str | None = None
+    assigned_to: str | None = None
+
