@@ -6,6 +6,7 @@ from app.models.user import User
 
 from app.database import get_db
 from app.schemas.ticket import TicketCreate, TicketResponse, TicketUpdate
+
 from app.services.ticket_service import (
     create_ticket as create_ticket_service,
     get_all_tickets,
@@ -14,10 +15,12 @@ from app.services.ticket_service import (
     delete_ticket as delete_ticket_service,
 )
 
+
 router = APIRouter(
     prefix="/tickets",
     tags=["Tickets"]
 )
+
 
 @router.post("/", response_model=TicketResponse)
 def create_ticket(
@@ -25,14 +28,23 @@ def create_ticket(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return create_ticket_service(db, ticket)
+    return create_ticket_service(
+        db,
+        ticket,
+        current_user
+    )
+
 
 @router.get("/", response_model=list[TicketResponse])
 def get_tickets(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin","engineer")),
+    current_user: User = Depends(get_current_user),
 ):
-    return get_all_tickets(db)
+    return get_all_tickets(
+        db,
+        current_user
+    )
+
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
 def get_ticket(
@@ -40,16 +52,27 @@ def get_ticket(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return get_ticket_by_id(db, ticket_id)
+    return get_ticket_by_id(
+        db,
+        ticket_id,
+        current_user
+    )
+
 
 @router.put("/{ticket_id}", response_model=TicketResponse)
 def update_ticket(
     ticket_id: int,
     ticket_data: TicketUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "engineer")),
+    current_user: User = Depends(get_current_user),
 ):
-    return update_ticket_service(db, ticket_id, ticket_data)
+    return update_ticket_service(
+        db,
+        ticket_id,
+        ticket_data,
+        current_user
+    )
+
 
 @router.delete("/{ticket_id}")
 def delete_ticket(
@@ -57,4 +80,8 @@ def delete_ticket(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
-    return delete_ticket_service(db, ticket_id)
+    return delete_ticket_service(
+        db,
+        ticket_id,
+        current_user
+    )

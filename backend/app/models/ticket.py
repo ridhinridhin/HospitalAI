@@ -13,6 +13,9 @@ class Ticket(Base):
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
 
+    # Ticket Owner
+    owner_id = Column(Integer, nullable=False, index=True)
+
     # Employee Information
     employee_id = Column(String, nullable=False, index=True)
     employee_name = Column(String, nullable=False)
