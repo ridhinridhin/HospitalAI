@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import get_current_user, require_role
+from app.models.user import User
+
 from app.database import get_db
 from app.schemas.ticket import TicketCreate, TicketResponse, TicketUpdate
 from app.services.ticket_service import (
@@ -17,15 +20,26 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=TicketResponse)
-def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
+def create_ticket(
+    ticket: TicketCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return create_ticket_service(db, ticket)
 
 @router.get("/", response_model=list[TicketResponse])
-def get_tickets(db: Session = Depends(get_db)):
+def get_tickets(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin","engineer")),
+):
     return get_all_tickets(db)
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
-def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
+def get_ticket(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return get_ticket_by_id(db, ticket_id)
 
 @router.put("/{ticket_id}", response_model=TicketResponse)
@@ -33,9 +47,14 @@ def update_ticket(
     ticket_id: int,
     ticket_data: TicketUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "engineer")),
 ):
     return update_ticket_service(db, ticket_id, ticket_data)
 
 @router.delete("/{ticket_id}")
-def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
+def delete_ticket(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
     return delete_ticket_service(db, ticket_id)
