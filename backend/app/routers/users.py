@@ -5,14 +5,18 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 from app.auth.hashing import hash_password
-from app.auth.dependencies import get_current_user
-from app.models.user import User
+from app.auth.dependencies import get_current_user, require_role
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin"))
+):
     db_user = User(
     name=user.name,
     email=user.email,
@@ -28,7 +32,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[UserResponse])
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin"))
+):
     return db.query(User).all()
 
 @router.get("/me")
