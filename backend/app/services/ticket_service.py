@@ -5,7 +5,7 @@ from app.models.user import User
 
 from app.models.ticket import Ticket
 from app.schemas.ticket import TicketCreate, TicketUpdate
-
+from app.services.activity_service import log_activity
 
 def create_ticket(
     db: Session,
@@ -28,6 +28,13 @@ def create_ticket(
     db.add(ticket)
     db.commit()
     db.refresh(ticket)
+
+    log_activity(
+        db,
+        ticket.id,
+        current_user,
+        "Created the ticket"
+    )
 
     return ticket
 
@@ -87,6 +94,12 @@ def update_ticket(
 
     db.commit()
     db.refresh(ticket)
+    log_activity(
+        db,
+        ticket.id,
+        current_user,
+        "Updated the ticket"
+    )
 
     return ticket
 
