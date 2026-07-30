@@ -8,6 +8,9 @@ from app.services.ticket_service import get_ticket_by_id
 from app.schemas.comment import CommentCreate
 from app.services.activity_service import log_activity
 
+from app.models.ticket import Ticket
+from app.services.email_service import send_comment_notification
+
 def create_comment(
     db: Session,
     ticket_id: int,
@@ -34,6 +37,27 @@ def create_comment(
         current_user,
         "Added a comment"
     )
+
+    ticket = (
+        db.query(Ticket)
+        .filter(Ticket.id == ticket_id)
+        .first()
+    )
+    if ticket:
+        owner = (
+            db.query(User)
+            .filter(User.id == ticket.owner_id)
+            .first()
+        )
+        
+        # Don't email yourself when commenting
+        if owner and owner.id != current_user.id:
+            send_comment_notification(
+                employee_email=owner.email,
+                employee_name=owner.name,
+                ticket_title=ticket.title,
+                comment=comment.message
+            )
     
     return comment
 
