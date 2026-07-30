@@ -7,6 +7,14 @@ from app.models.ticket import Ticket
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.services.activity_service import log_activity
 
+from app.services.email_service import (
+    send_ticket_created_email,
+    send_ticket_assigned_email,
+    send_ticket_resolved_email
+)
+
+
+
 def create_ticket(
     db: Session,
     ticket_data: TicketCreate,
@@ -29,11 +37,22 @@ def create_ticket(
     db.commit()
     db.refresh(ticket)
 
+
     log_activity(
         db,
         ticket.id,
         current_user,
         "Created the ticket"
+    )
+
+    send_ticket_assigned_email(
+        engineer_email=engineer.email,
+        engineer_name=engineer.name,
+        ticket_title=ticket.title,
+        ticket_description=ticket.description,
+        priority=ticket.priority,
+        department=ticket.department,
+        assigned_by=current_user.name
     )
 
     return ticket
@@ -85,7 +104,7 @@ def update_ticket(
         db,
         ticket_id,
         current_user
-)
+    )
 
     update_data = ticket_data.model_dump(exclude_unset=True)
 
@@ -94,12 +113,49 @@ def update_ticket(
 
     db.commit()
     db.refresh(ticket)
+
     log_activity(
         db,
         ticket.id,
         current_user,
         "Updated the ticket"
     )
+
+    # Send email when a ticket is assigned
+    if (
+        "assigned_to" in update_data
+        and ticket.assigned_to
+    ):
+        engineer = (
+            db.query(User)
+            .filter(User.name == ticket.assigned_to)
+            .first()
+        )
+
+        if engineer:
+            send_ticket_assigned_email(
+                engineer_email=engineer.email,
+                engineer_name=engineer.name,
+                ticket_title=ticket.title
+            )
+
+    # Send email when a ticket is resolved
+    if (
+        "status" in update_data
+        and ticket.status == "Resolved"
+    ):
+        owner = (
+            db.query(User)
+            .filter(User.id == ticket.owner_id)
+            .first()
+        )
+
+        if owner:
+            send_ticket_resolved_email(
+                employee_email=owner.email,
+                employee_name=owner.name,
+                ticket_title=ticket.title
+            )
 
     return ticket
 
