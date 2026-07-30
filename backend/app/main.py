@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from app.routers import health
 from app.database import Base, engine
 from app.models.user import User
-from app.routers import health, users, tickets, auth, comments, activity
+from app.routers import health, users, tickets, auth, comments, activity, attachments
 from app.models.ticket import Ticket
 from app.models.comment import Comment
 from app.models.activity import Activity
-
+from app.models.attachment import Attachment
 
 app = FastAPI(
     title="HospitalAI",
@@ -22,6 +22,8 @@ app.include_router(tickets.router)
 app.include_router(auth.router)
 app.include_router(comments.router)
 app.include_router(activity.router)
+app.include_router(attachments.router)
+
 
 @app.get("/")
 def home():
