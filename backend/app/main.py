@@ -7,6 +7,8 @@ from app.models.ticket import Ticket
 from app.models.comment import Comment
 from app.models.activity import Activity
 from app.models.attachment import Attachment
+from app.routers import dashboard
+
 
 app = FastAPI(
     title="HospitalAI",
@@ -23,6 +25,7 @@ app.include_router(auth.router)
 app.include_router(comments.router)
 app.include_router(activity.router)
 app.include_router(attachments.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/")
