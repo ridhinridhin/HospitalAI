@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String
-from app.database import Base
+from sqlalchemy import Column, Integer, String, DateTime
 
+from app.database import Base
 
 
 class User(Base):
@@ -11,3 +11,6 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="employee")
+
+    reset_token = Column(String, nullable=True)
+    reset_token_expiry = Column(DateTime, nullable=True)
