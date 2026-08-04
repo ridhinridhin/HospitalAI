@@ -19,3 +19,101 @@ class TicketStats(BaseModel):
 class DepartmentStat(BaseModel):
     department: str
     count: int
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.auth.dependencies import require_role
+
+from app.schemas.dashboard import TicketStats
+from app.services.dashboard_service import get_ticket_statistics
+
+from app.schemas.dashboard import PriorityStats
+from app.services.dashboard_service import get_priority_statistics
+
+from app.schemas.dashboard import DepartmentStat
+from app.services.dashboard_service import get_department_statistics
+
+from app.schemas.dashboard import EngineerWorkload
+from app.services.dashboard_service import get_engineer_workload
+
+from app.schemas.ticket import TicketResponse
+from app.services.dashboard_service import get_recent_tickets
+
+from app.schemas.activity import ActivityResponse
+from app.services.dashboard_service import get_recent_activities
+
+router = APIRouter(
+    prefix="/dashboard",
+    tags=["Dashboard"]
+)
+
+
+@router.get(
+    "/ticket-stats",
+    response_model=TicketStats
+)
+def ticket_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_ticket_statistics(db)
+
+@router.get(
+    "/priority-stats",
+    response_model=PriorityStats
+)
+def priority_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    return get_priority_statistics(db)
+
+@router.get(
+    "/department-stats",
+    response_model=list[DepartmentStat]
+)
+def department_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    return get_department_statistics(db)
+
+@router.get(
+    "/engineer-workload",
+    response_model=list[EngineerWorkload]
+)
+def engineer_workload(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    return get_engineer_workload(db)
+
+@router.get(
+    "/recent-tickets",
+    response_model=list[TicketResponse]
+)
+def recent_tickets(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    return get_recent_tickets(db)
+
+@router.get(
+    "/recent-activities",
+    response_model=list[ActivityResponse]
+)
+def recent_activities(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    return get_recent_activities(db)
+
+class SLAStats(BaseModel):
+    total_tickets: int
+    open_tickets: int
+    resolved_tickets: int
+    overdue_tickets: int
+    critical_overdue: int
+    sla_compliance: float

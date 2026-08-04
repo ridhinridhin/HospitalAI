@@ -1,6 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+from datetime import datetime
+
+
 
 class TicketCreate(BaseModel):
     title: str
@@ -15,6 +18,14 @@ class TicketResponse(TicketCreate):
     employee_name: str
     status: str
     assigned_to: str | None = None
+
+
+    sla_due_date: datetime | None = None
+    is_overdue: bool = False
+    escalation_level: int = 0
+    escalated_at: datetime | None = None
+
+
     created_at: datetime
     updated_at: datetime
 

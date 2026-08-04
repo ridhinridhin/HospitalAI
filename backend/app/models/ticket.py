@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from datetime import datetime, UTC
 
 from app.database import Base
@@ -28,10 +28,16 @@ class Ticket(Base):
     # IT Assignment
     assigned_to = Column(String, nullable=True)
 
+    # SLA Information
+    sla_due_date = Column(DateTime, nullable=True)
+    is_overdue = Column(Boolean, default=False)
+    escalation_level = Column(Integer, default=0)
+    escalated_at = Column(DateTime, nullable=True)
+
     # Time Tracking
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
         DateTime,
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC)
-)
+    )

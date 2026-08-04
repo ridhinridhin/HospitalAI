@@ -22,6 +22,9 @@ from app.services.dashboard_service import get_recent_tickets
 from app.schemas.activity import ActivityResponse
 from app.services.dashboard_service import get_recent_activities
 
+from app.schemas.dashboard import SLAStats
+from app.services.dashboard_service import get_sla_statistics
+
 router = APIRouter(
     prefix="/dashboard",
     tags=["Dashboard"]
@@ -87,3 +90,13 @@ def recent_activities(
     current_user=Depends(require_role("admin"))
 ):
     return get_recent_activities(db)
+
+@router.get(
+    "/sla-stats",
+    response_model=SLAStats
+)
+def sla_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_sla_statistics(db)

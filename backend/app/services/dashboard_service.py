@@ -81,3 +81,101 @@ def get_recent_activities(
         .limit(limit)
         .all()
     )
+
+def get_sla_statistics(db: Session):
+    total_tickets = db.query(Ticket).count()
+
+    open_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.status != "Resolved")
+        .count()
+    )
+
+    resolved_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.status == "Resolved")
+        .count()
+    )
+
+    overdue_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.is_overdue == True)
+        .count()
+    )
+
+    critical_overdue = (
+        db.query(Ticket)
+        .filter(
+            Ticket.is_overdue == True,
+            Ticket.priority == "Critical"
+        )
+        .count()
+    )
+
+    sla_compliance = (
+        100.0
+        if total_tickets == 0
+        else round(
+            ((total_tickets - overdue_tickets) / total_tickets) * 100,
+            2
+        )
+    )
+
+    return {
+        "total_tickets": total_tickets,
+        "open_tickets": open_tickets,
+        "resolved_tickets": resolved_tickets,
+        "overdue_tickets": overdue_tickets,
+        "critical_overdue": critical_overdue,
+        "sla_compliance": sla_compliance,
+    }
+
+def get_sla_statistics(db: Session):
+    total_tickets = db.query(Ticket).count()
+
+    open_tickets = (
+        db.query(Ticket)
+        .filter(
+            Ticket.status.in_(["Open", "In Progress"])
+        )
+        .count()
+    )
+
+    resolved_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.status == "Resolved")
+        .count()
+    )
+
+    overdue_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.is_overdue == True)
+        .count()
+    )
+
+    critical_overdue = (
+        db.query(Ticket)
+        .filter(
+            Ticket.is_overdue == True,
+            Ticket.priority == "Critical"
+        )
+        .count()
+    )
+
+    sla_compliance = (
+        100.0
+        if total_tickets == 0
+        else round(
+            ((total_tickets - overdue_tickets) / total_tickets) * 100,
+            2
+        )
+    )
+
+    return {
+        "total_tickets": total_tickets,
+        "open_tickets": open_tickets,
+        "resolved_tickets": resolved_tickets,
+        "overdue_tickets": overdue_tickets,
+        "critical_overdue": critical_overdue,
+        "sla_compliance": sla_compliance,
+    }
