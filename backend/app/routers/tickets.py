@@ -13,8 +13,9 @@ from app.services.ticket_service import (
     get_ticket_by_id,
     update_ticket as update_ticket_service,
     delete_ticket as delete_ticket_service,
+    get_overdue_tickets,
+    escalate_ticket,
 )
-
 
 router = APIRouter(
     prefix="/tickets",
@@ -41,6 +42,18 @@ def get_tickets(
     current_user: User = Depends(get_current_user),
 ):
     return get_all_tickets(
+        db,
+        current_user
+    )
+
+
+# Must be above /{ticket_id}
+@router.get("/overdue", response_model=list[TicketResponse])
+def overdue_tickets(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_overdue_tickets(
         db,
         current_user
     )
@@ -81,6 +94,21 @@ def delete_ticket(
     current_user: User = Depends(require_role("admin")),
 ):
     return delete_ticket_service(
+        db,
+        ticket_id,
+        current_user
+    )
+
+@router.post(
+    "/{ticket_id}/escalate",
+    response_model=TicketResponse
+)
+def escalate(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "engineer"))
+):
+    return escalate_ticket(
         db,
         ticket_id,
         current_user

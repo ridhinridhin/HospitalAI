@@ -8,6 +8,7 @@ from app.models.comment import Comment
 from app.models.activity import Activity
 from app.models.attachment import Attachment
 from app.routers import dashboard
+from app.jobs.scheduler import start_scheduler
 
 
 app = FastAPI(
@@ -34,3 +35,7 @@ def home():
         "message": "Welcome to HospitalAI 🚀",
         "status": "Running Successfully"
     }
+
+@app.on_event("startup")
+def startup():
+    start_scheduler()
