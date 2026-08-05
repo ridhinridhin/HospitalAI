@@ -14,7 +14,7 @@ from app.services.email_service import (
 )
 
 from datetime import datetime, UTC, timedelta
-
+from sqlalchemy import or_, asc, desc
 
 def create_ticket(
     db: Session,
@@ -85,24 +85,104 @@ def create_ticket(
     return ticket
 
 
-def get_all_tickets(db: Session, current_user: User):
+def get_all_tickets(
+    db: Session,
+    current_user: User,
+    search: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
+    department: str | None = None,
+    assigned_to: str | None = None,
+    sort_by: str = "created_at",
+    order: str = "desc",
+    page: int = 1,
+    page_size: int = 10
+):
+    query = db.query(Ticket)
 
-    if current_user.role in ["admin", "engineer"]:
-        return db.query(Ticket).all()
+    # Employee can only view their own tickets
+    if current_user.role == "employee":
+        query = query.filter(
+            Ticket.owner_id == current_user.id
+        )
 
-    return db.query(Ticket).filter(
-        Ticket.owner_id == current_user.id
-    ).all()
+    # Search
+    if search:
+        query = query.filter(
+            or_(
+                Ticket.title.ilike(f"%{search}%"),
+                Ticket.description.ilike(f"%{search}%"),
+                Ticket.employee_name.ilike(f"%{search}%"),
+                Ticket.department.ilike(f"%{search}%")
+            )
+        )
 
+    # Filters
+    if status:
+        query = query.filter(Ticket.status == status)
+
+    if priority:
+        query = query.filter(Ticket.priority == priority)
+
+    if department:
+        query = query.filter(Ticket.department == department)
+
+    if assigned_to:
+        query = query.filter(Ticket.assigned_to == assigned_to)
+
+    # Sorting
+    allowed_sort_fields = {
+        "created_at": Ticket.created_at,
+        "updated_at": Ticket.updated_at,
+        "priority": Ticket.priority,
+        "status": Ticket.status,
+        "sla_due_date": Ticket.sla_due_date,
+        "title": Ticket.title
+    }
+
+    sort_column = allowed_sort_fields.get(
+        sort_by,
+        Ticket.created_at
+    )
+
+    if order.lower() == "asc":
+        query = query.order_by(asc(sort_column))
+    else:
+        query = query.order_by(desc(sort_column))
+
+    # Pagination
+    
+    total = query.count()
+    
+    tickets = (
+        query.offset(
+            (page - 1) * page_size
+        )
+        .limit(page_size)
+        .all()
+    )
+    pages = (
+        total + page_size - 1
+    ) // page_size
+    
+    return {
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "pages": pages,
+        "items": tickets
+    }
 
 def get_ticket_by_id(
     db: Session,
     ticket_id: int,
     current_user: User
 ):
-    ticket = db.query(Ticket).filter(
-        Ticket.id == ticket_id
-    ).first()
+    ticket = (
+        db.query(Ticket)
+        .filter(Ticket.id == ticket_id)
+        .first()
+    )
 
     if ticket is None:
         raise HTTPException(
@@ -110,16 +190,17 @@ def get_ticket_by_id(
             detail="Ticket not found"
         )
 
-    if current_user.role == "employee":
-
-        if ticket.owner_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Access denied"
-            )
+    # Employees can only view their own tickets
+    if (
+        current_user.role == "employee"
+        and ticket.owner_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
 
     return ticket
-
 
 def update_ticket(
     db: Session,

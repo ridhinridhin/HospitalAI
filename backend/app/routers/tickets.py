@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_role
@@ -6,6 +6,7 @@ from app.models.user import User
 
 from app.database import get_db
 from app.schemas.ticket import TicketCreate, TicketResponse, TicketUpdate
+from app.schemas.pagination import TicketListResponse
 
 from app.services.ticket_service import (
     create_ticket as create_ticket_service,
@@ -36,14 +37,32 @@ def create_ticket(
     )
 
 
-@router.get("/", response_model=list[TicketResponse])
+@router.get("/", response_model=TicketListResponse)
 def get_tickets(
+    search: str | None = Query(None),
+    status: str | None = Query(None),
+    priority: str | None = Query(None),
+    department: str | None = Query(None),
+    assigned_to: str | None = Query(None),
+    sort_by: str = Query("created_at"),
+    order: str = Query("desc"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return get_all_tickets(
-        db,
-        current_user
+        db=db,
+        current_user=current_user,
+        search=search,
+        status=status,
+        priority=priority,
+        department=department,
+        assigned_to=assigned_to,
+        sort_by=sort_by,
+        order=order,
+        page=page,
+        page_size=page_size,
     )
 
 
