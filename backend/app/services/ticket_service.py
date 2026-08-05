@@ -6,6 +6,8 @@ from app.models.user import User
 from app.models.ticket import Ticket
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.services.activity_service import log_activity
+from openpyxl import Workbook
+from openpyxl.styles import Font
 
 from app.services.email_service import (
     send_ticket_created_email,

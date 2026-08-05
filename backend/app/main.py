@@ -9,6 +9,7 @@ from app.models.activity import Activity
 from app.models.attachment import Attachment
 from app.routers import dashboard
 from app.jobs.scheduler import start_scheduler
+from app.routers import reports
 
 
 app = FastAPI(
@@ -27,6 +28,7 @@ app.include_router(comments.router)
 app.include_router(activity.router)
 app.include_router(attachments.router)
 app.include_router(dashboard.router)
+app.include_router(reports.router)
 
 
 @app.get("/")
