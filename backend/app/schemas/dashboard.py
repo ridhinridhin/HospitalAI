@@ -44,6 +44,9 @@ from app.services.dashboard_service import get_recent_tickets
 from app.schemas.activity import ActivityResponse
 from app.services.dashboard_service import get_recent_activities
 
+from app.schemas.dashboard_chart import ResolutionTime
+from app.services.dashboard_service import get_average_resolution_time
+
 router = APIRouter(
     prefix="/dashboard",
     tags=["Dashboard"]
@@ -117,3 +120,13 @@ class SLAStats(BaseModel):
     overdue_tickets: int
     critical_overdue: int
     sla_compliance: float
+
+@router.get(
+    "/average-resolution-time",
+    response_model=ResolutionTime
+)
+def average_resolution_time(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_average_resolution_time(db)
