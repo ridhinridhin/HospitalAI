@@ -25,6 +25,21 @@ from app.services.dashboard_service import get_recent_activities
 from app.schemas.dashboard import SLAStats
 from app.services.dashboard_service import get_sla_statistics
 
+from app.schemas.dashboard_chart import TrendPoint
+from app.services.dashboard_service import get_ticket_trends
+
+from app.schemas.dashboard_chart import PriorityChart
+from app.services.dashboard_service import get_priority_chart
+
+from app.schemas.dashboard_chart import DepartmentChart
+from app.services.dashboard_service import get_department_chart
+
+from app.schemas.dashboard_chart import EngineerChart
+from app.services.dashboard_service import get_engineer_chart
+
+from app.schemas.dashboard_chart import DashboardSummary
+from app.services.dashboard_service import get_dashboard_summary
+
 router = APIRouter(
     prefix="/dashboard",
     tags=["Dashboard"]
@@ -100,3 +115,54 @@ def sla_statistics(
     current_user=Depends(require_role("admin", "engineer"))
 ):
     return get_sla_statistics(db)
+
+@router.get(
+    "/trends",
+    response_model=list[TrendPoint]
+)
+def ticket_trends(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_ticket_trends(db)
+
+
+@router.get(
+    "/priority-chart",
+    response_model=list[PriorityChart]
+)
+def priority_chart(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_priority_chart(db)
+
+@router.get(
+    "/department-chart",
+    response_model=list[DepartmentChart]
+)
+def department_chart(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_department_chart(db)
+
+@router.get(
+    "/engineer-chart",
+    response_model=list[EngineerChart]
+)
+def engineer_chart(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_engineer_chart(db)
+
+@router.get(
+    "/summary",
+    response_model=DashboardSummary
+)
+def dashboard_summary(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin", "engineer"))
+):
+    return get_dashboard_summary(db)
